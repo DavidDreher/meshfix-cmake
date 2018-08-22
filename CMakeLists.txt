@@ -3,6 +3,9 @@
 # to the root binary directory of the project as ${HELLO_BINARY_DIR}.
 cmake_minimum_required (VERSION 2.8.11)
 project (MeshFix)
+set(CMAKE_CXX_STANDARD 11)
+
+
 add_definitions(-DIS64BITPLATFORM)
 
 # Recurse into the "Hello" and "Demo" subdirectories. This does not actually
