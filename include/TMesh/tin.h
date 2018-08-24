@@ -159,8 +159,8 @@ class Basic_TMesh
 		int loadOBJ(const char *);		//!< Loads OBJ
 		int loadSTL(const char *);		//!< Loads STL
 
-        int loadDouble(const double *, const int, const double *, const int, const bool);
-		int exportDouble(double *, int *, double *, int *);
+        int loadDouble(const double *, const size_t, const double *, const size_t, const bool);
+		int exportDouble(double *, double *);
 
 		int cutAndStitch();	//!< Convert to manifold
 		Triangle * CreateIndexedTriangle(ExtVertex **, int, int, int);							

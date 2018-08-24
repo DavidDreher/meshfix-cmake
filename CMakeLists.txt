@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 
 add_definitions(-DIS64BITPLATFORM)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Recurse into the "Hello" and "Demo" subdirectories. This does not actually
 # cause another cmake executable to run. The same process will walk through
@@ -15,4 +16,6 @@ add_subdirectory (src/Algorithms)
 add_subdirectory (src/TMesh)
 add_subdirectory (src/Kernel)
 add_subdirectory (src/MeshFix)
+add_subdirectory (src/mat_meshfix)
+
 

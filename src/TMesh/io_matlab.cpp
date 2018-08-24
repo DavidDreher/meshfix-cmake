@@ -15,28 +15,31 @@ namespace T_MESH {
 #define TVI3(a) (TMESH_TO_INT(((Triangle *)a->data)->v3()->x))
 
 
-    void setVertexDouble(double *vertices, float x, float y, float z, int num_vertex) {
-        vertices[0] = (double) x;
-        vertices[num_vertex] = (double) y;
-        vertices[2 * num_vertex] = (double) z;
+    void setVertexDouble(double *vertices, float x, float y, float z, int num_vertex, int idx) {
+        vertices[idx + 0*num_vertex] = (double) x;
+        vertices[idx + 1*num_vertex] = (double) y;
+        vertices[idx + 2*num_vertex] = (double) z;
+//        printf("v1:%f\t v2:%f\t v3:%f\n", x, y, z);
     }
 
-    void setFacesDouble(double *faces, int x, int y, int z, int num_faces) {
-        faces[0] = (double) x;
-        faces[num_faces] = (double) y;
-        faces[2 * num_faces] = (double) z;
+    void setFacesDouble(double *faces, int x, int y, int z, int num_faces, int idx) {
+        faces[idx + 0*num_faces] = (double) x;
+        faces[idx + 1*num_faces] = (double) y;
+        faces[idx + 2*num_faces] = (double) z;
+//        printf("f1:%d\t f2:%d\t f3:%d\n", x, y, z);
     }
 
     int Basic_TMesh::loadDouble(
             const double *in_vertices,
-            const int n_vertex,
+            const size_t n_vertex,
             const double *in_faces,
-            const int n_faces,
+            const size_t n_faces,
             const bool doupdate) {
 
         Node *n;
         float x, y, z;
-        int i, i1, i2, i3, triangulate = 0;
+        size_t i = 0;
+        int i1, i2, i3, triangulate = 0;
         Vertex *v;
 
         if (n_vertex < 3) TMesh::error("\nloadEigen: Can't load objects with less than 3 vertices.\n");
@@ -61,7 +64,7 @@ namespace T_MESH {
             if ((i % 1000) == 0) TMesh::report_progress("Loading ..%d%%", (i * 100) / (n_vertex * 2));
 
             if (i1 < 0 || i2 < 0 || i3 < 0 || i1 > (n_vertex - 1) || i2 > (n_vertex - 1) || i3 > (n_vertex - 1))
-                TMesh::error("\nloadDouble: Invalid index at face %d!\n", i);
+                TMesh::error("\nloadDouble: Invalid index at face %d!\n i1:%d\t i2:%d\t i3:%d\t nV:%d\n", i, i1, i2, i3, n_vertex);
             if (i1 == i2 || i2 == i3 || i3 == i1)
                 TMesh::warning("\nloadDouble: Coincident indexes at triangle %d! Skipping.\n", i);
             else if (!CreateIndexedTriangle(var, i1, i2, i3))
@@ -96,23 +99,30 @@ namespace T_MESH {
         d_boundaries = d_handles = d_shells = 1;
     }
 
+//    <int Basic_TMesh::getNumVertices() {
+//        return V.numels();
+//    }
+//
+//    int Basic_TMesh::getNumFaces() {
+//        return T.numels();
+//    }
+
 
     int Basic_TMesh::exportDouble(
             double *out_vertices,
-            int *num_vertex,
-            double *out_faces,
-            int *num_faces) {
+            double *out_faces) {
         int i;
+        int idx;
         Node *n;
         coord *ocds;
         Vertex *v;
 
-        *num_vertex = (int) V.numels();
-        *num_faces = (int) T.numels();
+        int num_vertex = V.numels();
+        int num_faces = T.numels();
 
-        out_vertices = (double *) malloc(sizeof(double) * *num_vertex * 3);
+        idx = 0;
         FOREACHVERTEX(v, n)
-        setVertexDouble(out_vertices,TMESH_TO_FLOAT(v->x), TMESH_TO_FLOAT(v->y), TMESH_TO_FLOAT(v->z), *num_vertex);
+        setVertexDouble(out_vertices,TMESH_TO_FLOAT(v->x), TMESH_TO_FLOAT(v->y), TMESH_TO_FLOAT(v->z), num_vertex, idx++);
 
         ocds = new coord[V.numels()];
         i = 0;
@@ -122,10 +132,9 @@ namespace T_MESH {
         FOREACHVERTEX(v, n)
         v->x = i++;
 
-        out_faces = (double *) malloc(sizeof(double) * *num_faces * 3);
-
+        idx = 0;
         FOREACHNODE(T, n)
-        setFacesDouble(out_faces, TVI1(n), TVI2(n), TVI3(n), *num_faces);
+        setFacesDouble(out_faces, TVI1(n), TVI2(n), TVI3(n), num_faces, idx++);
 
         i = 0;
         FOREACHVERTEX(v, n)
