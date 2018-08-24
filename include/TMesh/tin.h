@@ -159,6 +159,9 @@ class Basic_TMesh
 		int loadOBJ(const char *);		//!< Loads OBJ
 		int loadSTL(const char *);		//!< Loads STL
 
+        int loadDouble(const double *, const int, const double *, const int, const bool);
+		int exportDouble(double *, int *, double *, int *);
+
 		int cutAndStitch();	//!< Convert to manifold
 		Triangle * CreateIndexedTriangle(ExtVertex **, int, int, int);							
 		TMESH_VIRTUAL Triangle * CreateTriangleFromVertices(ExtVertex *, ExtVertex *, ExtVertex *);	
@@ -169,6 +172,8 @@ class Basic_TMesh
 
 	protected:
 		void closeLoadingSession(FILE *, int, ExtVertex **, bool);
+		void closeLoading(int, ExtVertex **, bool);
+
 		bool pinch(Edge *e, bool wcv);
 		//! If the 'e' is internal, creates a copy of the edge and associates e->t2
 		//! to this copy. After this operation, 'e' and its copy are boundary edges
