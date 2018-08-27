@@ -123,87 +123,104 @@ void mexFunction(
     double *F_out;
     size_t num_vertices_in, num_faces_in;
     size_t num_vertices_out, num_faces_out;
-//    bool join_multiple_components = false;
+    bool join_multiple_components = false;
     bool auto_update = true;
 
-    if (mxGetN(prhs[0]) != 3) mexErrMsgTxt("V_in must be #V_in by 3");
-    if (mxGetN(prhs[1]) != 3) mexErrMsgTxt("F_in must be #F_in by 3");
-    V_in = mxGetDoubles(prhs[0]);
-    F_in = mxGetDoubles(prhs[1]);
-    num_vertices_in = mxGetM(prhs[0]);
-    num_faces_in = mxGetM(prhs[1]);
-    mexPrintf("Parsing inputs completed\n");
+    if (nrhs < 2 || nrhs > 3)
+        mexErrMsgIdAndTxt( "mat_meshfix:invalidNumInputs", "Two or three input arguments required");
+    if (nlhs > 2)
+        mexErrMsgIdAndTxt( "mat_meshfix:maxlhs", "Too many output arguments");
+    if (!(mxIsDouble(prhs[0])))
+        mexErrMsgIdAndTxt( "mat_meshfix:facesNotDouble", "Input face matrix must be double");
+    if (!(mxIsDouble(prhs[1])))
+        mexErrMsgIdAndTxt( "mat_meshfix:verticesNotDouble", "Input vertex matrix must be double");
+    if (mxGetNumberOfDimensions(prhs[0]) != 2)
+        mexErrMsgIdAndTxt( "mat_meshfix:facesNot2D", "Input face matrix must be 2D");
+    if (mxGetNumberOfDimensions(prhs[1]) != 2)
+        mexErrMsgIdAndTxt( "mat_meshfix:verticesNot2D", "Input vertex matrix must be 2D");
+    if (mxGetN(prhs[0]) != 3)
+        mexErrMsgIdAndTxt( "mat_meshfix:facesInvalidNCols", "Input face matrix must have 3 columns");
+    if (mxGetN(prhs[1]) != 3)
+        mexErrMsgIdAndTxt( "mat_meshfix:verticesInvalidNCols", "Input vertex matrix must have 3 columns");
+    if (mxGetM(prhs[0]) < 1)
+        mexErrMsgIdAndTxt( "mat_meshfix:facesTooFew", "Input face matrix must contain at least 1 face");
+    if (mxGetM(prhs[1]) < 3)
+        mexErrMsgIdAndTxt( "mat_meshfix:verticesTooFew", "Input vertex matrix must contain at least 3 points");
 
-    TMesh::init(); // This is mandatory
-    TMesh::app_name = "mat_meshfix";
-    TMesh::app_version = "1.0";
-    TMesh::app_year = "2018";
-    TMesh::app_authors = "David Dreher";
-    TMesh::app_maillist = "david.dreher@rocketmail.com";
-
-    mexPrintf("TMesh init completed\n");
-
-    clock_t beginning = clock();
-
-    Basic_TMesh tin;
-    mexPrintf("TMesh object constructed\n");
-
-    if (tin.loadDouble(V_in, num_vertices_in, F_in, num_faces_in, auto_update) != 0)
-        TMesh::error("Can't import mesh.\n");
-    mexPrintf("Loaded double arrays\n");
-
-//    if (join_multiple_components) {
-//        TMesh::info("\nJoining input components ...\n");
-//        TMesh::begin_progress();
-//        while (joinClosestComponents(&tin)) TMesh::report_progress("Num. components: %d       ", tin.shells());
-//        TMesh::end_progress();
-//        tin.deselectTriangles();
-//    }
-
-    // Keep only the largest component (i.e. with most triangles)
-    int sc = tin.removeSmallestComponents();
-    if (sc) TMesh::warning("Removed %d small components\n", sc);
-
-    // Fill holes
-    if (tin.boundaries()) {
-        TMesh::warning("Patching holes\n");
-        tin.fillSmallBoundaries(0, true);
+    if (nrhs == 3) {
+        if (!(mxIsLogicalScalar(prhs[2])))
+            mexErrMsgIdAndTxt( "mat_meshfix:joinComponentsInvalid", "Join components must be a logical scalar");
+        join_multiple_components = mxIsLogicalScalarTrue(prhs[2]);
     }
 
-    // Run geometry correction
-    if (!tin.boundaries()) TMesh::warning("Fixing degeneracies and intersections...\n");
-    if (tin.boundaries() || !tin.meshclean()) TMesh::warning("MeshFix could not fix everything.\n", sc);
+    F_in = mxGetDoubles(prhs[0]);
+    V_in = mxGetDoubles(prhs[1]);
+    num_faces_in = mxGetM(prhs[0]);
+    num_vertices_in = mxGetM(prhs[1]);
+    try {
+        TMesh::init(); // This is mandatory
+        TMesh::app_name = "mat_meshfix";
+        TMesh::app_version = "1.0";
+        TMesh::app_year = "2018";
+        TMesh::app_authors = "David Dreher";
+        TMesh::app_maillist = "david.dreher@rocketmail.com";
 
-    mexPrintf("Number vertices: %d\n", tin.V.numels() );
-    mexPrintf("Number faces: %d\n", tin.T.numels() );
+        mexPrintf("TMesh init completed\n");
 
-    num_vertices_out = (size_t) tin.V.numels();
-    num_faces_out = (size_t) tin.T.numels();
-    plhs[0] = mxCreateDoubleMatrix(num_vertices_out, 3, mxREAL);
-    plhs[1] = mxCreateDoubleMatrix(num_faces_out, 3, mxREAL);
+        clock_t beginning = clock();
 
-    V_out = mxGetDoubles(plhs[0]);
-    F_out = mxGetDoubles(plhs[1]);
-    mexPrintf("Exporting Manifold Oriented Triangulation ...\n");
-    if (tin.exportDouble(V_out, F_out) != 0)
-        TMesh::error("Can't export mesh.\n");
+        Basic_TMesh tin;
+        mexPrintf("TMesh object constructed\n");
 
-//
-//
-//    mxSetDoubles(plhs[0], V_out);
-//    mxSetDoubles(plhs[1], F_out);
+        if (tin.loadDouble(V_in, num_vertices_in, F_in, num_faces_in, auto_update) != 0)
+            TMesh::error("Can't import mesh.\n");
+        mexPrintf("Loaded double arrays\n");
 
-    printf("Elapsed time: %d ms\n", clock() - beginning);
+        if (join_multiple_components) {
+            TMesh::info("\nJoining input components ...\n");
+            TMesh::begin_progress();
+            while (joinClosestComponents(&tin)) TMesh::report_progress("Num. components: %d       ", tin.shells());
+            TMesh::end_progress();
+            tin.deselectTriangles();
+        }
 
-//    int i;
-//    mexPrintf("New vertices(%d):\n", num_vertices_out);
-//    for (i = 0; i < num_vertices_out; i++) {
-//        mexPrintf("%f\t%f\t%f\t\n", V_out[i], V_out[i+num_vertices_out], V_out[i+2*num_vertices_out]);
-//    }
-//
-//    mexPrintf("New faces(%d):\n", num_faces_out);
-//    for (i = 0; i < num_faces_out; i++) {
-//        mexPrintf("%d\t%d\t%d\t\n", (int) F_out[i], (int) F_out[i+num_faces_out], (int) F_out[i+2*num_faces_out]);
-//    }
+        // Keep only the largest component (i.e. with most triangles)
+        int sc = tin.removeSmallestComponents();
+        if (sc) TMesh::warning("Removed %d small components\n", sc);
+
+        // Fill holes
+        if (tin.boundaries()) {
+            TMesh::warning("Patching holes\n");
+            tin.fillSmallBoundaries(0, true);
+        }
+
+        // Run geometry correction
+        if (!tin.boundaries()) TMesh::warning("Fixing degeneracies and intersections...\n");
+        if (tin.boundaries() || !tin.meshclean()) TMesh::warning("MeshFix could not fix everything.\n", sc);
+
+        mexPrintf("Number vertices: %d\n", tin.V.numels());
+        mexPrintf("Number faces: %d\n", tin.T.numels());
+
+        num_vertices_out = (size_t) tin.V.numels();
+        num_faces_out = (size_t) tin.T.numels();
+        plhs[0] = mxCreateDoubleMatrix(num_vertices_out, 3, mxREAL);
+        plhs[1] = mxCreateDoubleMatrix(num_faces_out, 3, mxREAL);
+
+        V_out = mxGetDoubles(plhs[0]);
+        F_out = mxGetDoubles(plhs[1]);
+        mexPrintf("Exporting Manifold Oriented Triangulation ...\n");
+        if (tin.exportDouble(V_out, F_out) != 0)
+            TMesh::error("Can't export mesh.\n");
+        mexPrintf("Elapsed time: %zd ms\n", clock() - beginning);
+    }
+    catch (int i) {
+        if (i == 42)
+            mexErrMsgIdAndTxt("mat_meshfix:internalError", "Internal error in meshfix lib, check console output");
+        else
+            mexErrMsgIdAndTxt("mat_meshfix:unknownIntegerError", "Internal unknown integer error in meshfix lib, check console output");
+    }
+    catch (...) {
+        mexErrMsgIdAndTxt("mat_meshfix:unknownError", "Internal unknown error in meshfix lib, check console output");
+    }
 
 }

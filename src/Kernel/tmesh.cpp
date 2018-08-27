@@ -40,12 +40,12 @@ extern "C" void initPredicates();
 
 void (* TMesh::display_message)(const char*, int) = NULL;
 
-char *TMesh::app_name = NULL;
-char *TMesh::app_version = NULL;
-char *TMesh::app_year = NULL;
-char *TMesh::app_authors = NULL;
-char *TMesh::app_url = NULL;
-char *TMesh::app_maillist = NULL;
+const char *TMesh::app_name = NULL;
+const char *TMesh::app_version = NULL;
+const char *TMesh::app_year = NULL;
+const char *TMesh::app_authors = NULL;
+const char *TMesh::app_url = NULL;
+const char *TMesh::app_maillist = NULL;
 const char *TMesh::filename = NULL;
 bool TMesh::quiet = false;
 
@@ -80,7 +80,8 @@ void TMesh::error(const char *msg, ...)
  else
  {
   fprintf(stderr,fms);
-  exit(-1);
+  throw 42;
+//  exit(-1);
  }
 }
 
@@ -253,7 +254,7 @@ void TMesh::printElapsedTime(bool reset)
 {
 	static clock_t beginning_time;
 	if (reset) beginning_time = clock();
-	else printf("\n\n********** PARTIAL ELAPSED: %d msecs\n\n", (clock() - beginning_time));
+	else printf("\n\n********** PARTIAL ELAPSED: %zd msecs\n\n", (clock() - beginning_time));
 }
 
 } //namespace T_MESH

@@ -14,7 +14,9 @@ target_link_libraries(mat_meshfix LINK_PUBLIC Algorithms TMesh ${LIBS})
 target_compile_options(mat_meshfix PRIVATE -fpermissive)
 
 
-
+add_custom_command(TARGET mat_meshfix POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:mat_meshfix> ${PROJECT_SOURCE_DIR}
+        )
 
 
 
