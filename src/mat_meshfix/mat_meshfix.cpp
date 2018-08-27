@@ -203,11 +203,12 @@ void mexFunction(
 
         num_vertices_out = (size_t) tin.V.numels();
         num_faces_out = (size_t) tin.T.numels();
-        plhs[0] = mxCreateDoubleMatrix(num_vertices_out, 3, mxREAL);
-        plhs[1] = mxCreateDoubleMatrix(num_faces_out, 3, mxREAL);
 
-        V_out = mxGetDoubles(plhs[0]);
-        F_out = mxGetDoubles(plhs[1]);
+        plhs[0] = mxCreateDoubleMatrix(num_faces_out, 3, mxREAL);
+        plhs[1] = mxCreateDoubleMatrix(num_vertices_out, 3, mxREAL);
+
+        F_out = mxGetDoubles(plhs[0]);
+        V_out = mxGetDoubles(plhs[1]);
         mexPrintf("Exporting Manifold Oriented Triangulation ...\n");
         if (tin.exportDouble(V_out, F_out) != 0)
             TMesh::error("Can't export mesh.\n");
