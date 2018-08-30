@@ -15,6 +15,18 @@ validateattributes(vertices, {'numeric'}, {'2d', 'ncols', 3, 'finite', 'real'}, 
 validateattributes(joinMultipleComponents, {'numeric', 'logical'}, ...
     {'scalar', 'binary'}, mfilename, 'joinMultipleComponents', 3);
 
+if exist('mat_meshfix', 'file') ~= 3
+    fprintf('Compiling mat_meshfix\n');
+    prevDir = pwd;
+    cd(fileparts(mfilename('fullpath')));
+    if isfolder('build')
+        rmdir('build', 's');
+    end
+    status = system('./build_meshfix.sh', '-echo');
+    assert(status==0, [mfilename, ':compilationFailed'], ...
+        'Compilation of ''mat_meshfix'' failed, check logs');
+    cd(prevDir);
+end
 [faces, vertices] = mat_meshfix(double(faces)-1, double(vertices), joinMultipleComponents);
 faces = faces + 1;
 
