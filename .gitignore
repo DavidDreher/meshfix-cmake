@@ -1,2 +1,9 @@
 /build
+/.idea
+/cmake-build-debug
+
+*.mexa64
+*.mexmaci64
+*.mexw32
+*.mexw64
 
